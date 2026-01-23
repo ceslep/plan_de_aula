@@ -14,9 +14,9 @@ export class GoogleSheetsService {
 
   constructor() {
     if (typeof window !== "undefined") {
-      this.spreadsheetId =
+this.spreadsheetId =
         localStorage.getItem("spreadsheetId") ||
-        "1pkFF954kWh1aCAlyMlIjk7eQL1Povn3vO_5aJFxkM4c";
+        API_CONFIG.SHEET_ID;
       this.worksheetTitle =
         localStorage.getItem("inasistenciasSheet") || "plan";
       // Por defecto apuntamos a la URL configurada en constants.ts
