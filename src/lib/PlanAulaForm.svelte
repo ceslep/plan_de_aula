@@ -8,6 +8,7 @@
   import PeriodSelector from "./PeriodSelector.svelte";
   import GradeSelector from "./GradeSelector.svelte";
   import IntensitySelector from "./IntensitySelector.svelte";
+  import RecordFilter from "./RecordFilter.svelte";
 
   // Svelte 5 State (Runes)
   let formData = $state({
@@ -26,20 +27,6 @@
   let saving = $state(false);
   let savedRows = $state<any[]>([]);
   let loadingHistory = $state(false);
-
-  // Grouped records for the sidebar
-  let groupedRecords = $derived(() => {
-    const groups: Record<string, any[]> = {};
-    savedRows.forEach((row) => {
-      // Area is column 0, Grade is column 2
-      const key = `${row[0]} - ${row[2]}`;
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push(row);
-    });
-    return groups;
-  });
 
   onMount(async () => {
     await fetchHistory();
@@ -168,41 +155,32 @@
 </script>
 
 <div class="app-layout">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h3 class="text-lg font-bold">Registros Guardados</h3>
-      <button
-        onclick={fetchHistory}
-        class="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded"
-        title="Actualizar"
-      >
-        <span class={loadingHistory ? "animate-spin inline-block" : ""}>↻</span>
-      </button>
-    </div>
+   <!-- Sidebar -->
+   <aside class="sidebar">
+     <div class="sidebar-header">
+       <h3 class="text-lg font-bold">Registros Guardados</h3>
+       <button
+         onclick={fetchHistory}
+         class="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded"
+         title="Actualizar"
+       >
+         <span class={loadingHistory ? "animate-spin inline-block" : ""}>↻</span>
+       </button>
+     </div>
 
-    <div class="sidebar-content">
-      {#if loadingHistory}
-        <div class="p-4 text-center text-gray-400">Cargando...</div>
-      {:else if Object.keys(groupedRecords()).length === 0}
-        <div class="p-4 text-center text-gray-500">No hay registros</div>
-      {:else}
-        {#each Object.entries(groupedRecords()) as [key, rows]}
-          <div class="area-group">
-            <div class="area-title">{key}</div>
-            <div class="area-items">
-              {#each rows as row}
-                <button class="record-item" onclick={() => selectRecord(row)}>
-                  <div class="record-period">Pér: {row[4]}</div>
-                  <div class="record-teacher">{row[1]}</div>
-                </button>
-              {/each}
-            </div>
-          </div>
-        {/each}
-      {/if}
-    </div>
-  </aside>
+     <div class="sidebar-content">
+       {#if loadingHistory}
+         <div class="p-4 text-center text-gray-400">Cargando...</div>
+       {:else if savedRows.length === 0}
+         <div class="p-4 text-center text-gray-500">No hay registros</div>
+       {:else}
+         <RecordFilter 
+           records={savedRows}
+           onSelectRecord={selectRecord}
+         />
+       {/if}
+     </div>
+   </aside>
 
   <!-- Main Content -->
   <main class="main-content">
@@ -351,69 +329,9 @@
 
   .sidebar-content {
     flex-grow: 1;
-    overflow-y: auto;
-    padding: 10px;
-  }
-
-  .sidebar-content::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .sidebar-content::-webkit-scrollbar-thumb {
-    background-color: #444;
-    border-radius: 3px;
-  }
-
-  .area-group {
-    margin-bottom: 15px;
-  }
-
-  .area-title {
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #888;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    padding-left: 5px;
-    border-left: 2px solid #4a90e2;
-  }
-
-  .area-items {
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-  }
-
-  .record-item {
-    background-color: #2a2a2a;
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 10px;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s;
-    width: 100%;
-    color: white;
-  }
-
-  .record-item:hover {
-    background-color: #333;
-    border-color: #444;
-    transform: translateX(3px);
-  }
-
-  .record-period {
-    font-size: 0.7rem;
-    color: #4a90e2;
-    font-weight: bold;
-    margin-bottom: 2px;
-  }
-
-  .record-teacher {
-    font-size: 0.85rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .main-content {
